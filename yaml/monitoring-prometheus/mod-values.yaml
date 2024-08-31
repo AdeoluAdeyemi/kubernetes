@@ -1,0 +1,6 @@
+# Values file to overwrite default grafana configuration
+grafana:
+    adminPassword: adeolu
+    service:
+        type: NodePort
+        nodePort: 30002
