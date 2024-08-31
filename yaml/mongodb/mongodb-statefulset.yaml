@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb-stset
+  labels:
+    app: mongo
+  namespace: devops
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      terminationGracePeriodSeconds: 10
+#      volumes:
+#        - name: mongo-volume
+#          persistentVolumeClaim:
+#            claimName: pvc-nfs-dynamic-data
+      containers:
+        - name: mongo
+          image: mongo
+          command:
+          - mongod
+          - "--bind_ip_all"
+          - "--replSet"
+          - rs0
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-volume
+              mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-svc
+  namespace: devops
+  labels:
+    app: mongodb-svc
+spec:
+  selector:
+    app: mongo
+  clusterIP: None
+  ports:
+    - name: mongo
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
